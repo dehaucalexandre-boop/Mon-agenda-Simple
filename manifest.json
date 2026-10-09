@@ -1,0 +1,21 @@
+{
+  "id": "./",
+  "name": "Mon Agenda Simple",
+  "short_name": "Mon Agenda",
+  "description": "Agenda personnel simple pour noter et suivre ses tâches.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f4f6fa",
+  "theme_color": "#172033",
+  "lang": "fr",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

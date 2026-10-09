@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#172033">
+<meta name="description" content="Un agenda personnel simple pour noter des tâches et programmer des rappels.">
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" href="./icon.svg" type="image/svg+xml">
+<title>Mon Agenda Simple</title>
+<style>
+  :root { color-scheme: light; --bg:#f4f6fa; --card:#fff; --ink:#172033; --muted:#697386; --accent:#315efb; --line:#e4e8f0; --danger:#c62828; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; background:var(--bg); color:var(--ink); }
+  header { background:#172033; color:#fff; padding:26px 18px 24px; }
+  .wrap { max-width:720px; margin:0 auto; }
+  .eyebrow { font-size:12px; text-transform:uppercase; letter-spacing:.12em; opacity:.72; }
+  h1 { font-size:28px; margin:6px 0 5px; }
+  header p { margin:0; color:#d4d9e5; font-size:14px; }
+  main { max-width:720px; margin:0 auto; padding:18px 14px 40px; }
+  .composer, .toolbar, .task, .welcome { background:var(--card); border:1px solid var(--line); border-radius:16px; }
+  .tabbar { max-width:720px; margin:14px auto 0; padding:0 14px; display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .tab { background:transparent; color:var(--muted); border:1px solid transparent; padding:12px 10px; border-radius:12px; }
+  .tab.active { background:#e9eeff; color:var(--accent); border-color:#d8e0ff; }
+  .tab span:first-child { margin-right:5px; font-size:17px; }
+  .tab-count { display:inline-flex; align-items:center; justify-content:center; min-width:21px; height:21px; padding:0 5px; margin-left:4px; border-radius:20px; background:#dce4ff; color:#2547c8; font-size:11px; }
+  .view { display:none; }
+  .view.active { display:block; }
+  .welcome { padding:18px; margin-bottom:12px; background:linear-gradient(135deg,#ffffff,#edf2ff); }
+  .welcome-title { font-size:20px; font-weight:750; }
+  .welcome-subtitle { font-size:13px; color:var(--muted); margin-top:4px; }
+  .composer { padding:14px; box-shadow:0 4px 18px rgba(23,32,51,.04); }
+  label { display:block; font-size:13px; font-weight:650; margin-bottom:7px; }
+  textarea { width:100%; min-height:92px; resize:vertical; padding:12px; border:1px solid #d8deea; border-radius:11px; font:inherit; font-size:16px; outline:none; }
+  textarea:focus, input:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(49,94,251,.12); }
+  .schedule-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px; }
+  .schedule-field input { width:100%; min-width:0; padding:10px; border:1px solid #d8deea; border-radius:10px; font:inherit; background:#fff; color:var(--ink); }
+  .reminder-option { display:flex; align-items:center; gap:8px; margin-top:12px; font-weight:500; }
+  .reminder-option input { width:18px; height:18px; accent-color:var(--accent); }
+  .notification-row { display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; margin-top:10px; }
+  .small-button { background:#edf1ff; color:var(--accent); padding:8px 10px; font-size:12px; }
+  .composer-bottom { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:10px; flex-wrap:wrap; }
+  .date-hint { font-size:12px; color:var(--muted); }
+  button { border:0; cursor:pointer; font:inherit; font-weight:650; border-radius:10px; padding:11px 15px; }
+  .primary { color:#fff; background:var(--accent); }
+  .primary:active { transform:scale(.98); }
+  .toolbar { margin-top:16px; padding:10px; display:flex; gap:8px; align-items:center; justify-content:space-between; flex-wrap:wrap; }
+  .filters { display:flex; gap:5px; flex-wrap:wrap; }
+  .filter { background:transparent; color:var(--muted); padding:8px 10px; font-size:13px; }
+  .filter.active { color:var(--accent); background:#edf1ff; }
+  .search { flex:1; min-width:130px; max-width:220px; padding:9px 10px; border:1px solid var(--line); border-radius:9px; font:inherit; }
+  .section-head { display:flex; justify-content:space-between; align-items:center; margin:20px 3px 10px; }
+  .section-head h2 { font-size:16px; margin:0; }
+  .count { color:var(--muted); font-size:12px; }
+  #tasks { display:grid; gap:9px; }
+  .task { display:flex; gap:11px; align-items:flex-start; padding:13px; }
+  .task.done .task-text { color:#8b93a3; text-decoration:line-through; }
+  .check { width:22px; height:22px; flex:0 0 22px; accent-color:var(--accent); margin-top:2px; cursor:pointer; }
+  .task-content { min-width:0; flex:1; }
+  .task-text { white-space:pre-wrap; overflow-wrap:anywhere; line-height:1.4; }
+  .task-date { margin-top:7px; color:var(--muted); font-size:12px; }
+  .delete { background:#fff0f0; color:var(--danger); padding:8px 10px; font-size:12px; }
+  .task-actions { display:flex; flex-direction:column; gap:6px; align-items:stretch; }
+  .postpone { background:#edf1ff; color:#2547c8; padding:8px 10px; font-size:12px; white-space:nowrap; }
+  .overdue-label { display:inline-block; margin-top:7px; padding:3px 7px; border-radius:6px; background:#fff0f0; color:#b42318; font-size:11px; font-weight:750; }
+  .empty { text-align:center; padding:34px 16px; color:var(--muted); border:1px dashed #cfd6e3; border-radius:16px; background:rgba(255,255,255,.55); }
+  .empty strong { display:block; color:var(--ink); margin-bottom:5px; }
+  .footer-note { color:var(--muted); font-size:12px; line-height:1.5; margin:17px 4px 0; }
+  .view .section-head { margin-top:18px; }
+  .danger-link { background:transparent; color:var(--danger); font-size:12px; padding:8px; }
+  @media (max-width:420px) { h1{font-size:25px;} .toolbar{align-items:stretch;} .search{max-width:none;width:100%;order:2;} .schedule-row{grid-template-columns:1fr 1fr;} }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="eyebrow">Votre espace personnel</div>
+    <h1>Mon Agenda Simple</h1>
+    <p>Notez. Retrouvez. Supprimez quand vous voulez.</p>
+  </div>
+</header>
+<nav class="tabbar" aria-label="Navigation principale">
+  <button class="tab active" data-tab="home"><span>＋</span> Accueil</button>
+  <button class="tab" data-tab="tasks"><span>☷</span> Mes tâches <span class="tab-count" id="tabCount">0</span></button>
+</nav>
+<main>
+  <section id="homeView" class="view active">
+  <section class="welcome">
+    <div class="welcome-title">Qu'avez-vous à faire ?</div>
+    <div class="welcome-subtitle">Notez maintenant ou programmez pour plus tard.</div>
+  </section>
+  <section class="composer" aria-label="Ajouter une tâche">
+    <label for="taskInput">Qu'est-ce que vous voulez noter ?</label>
+    <textarea id="taskInput" placeholder="Une tâche, une idée, un rappel…"></textarea>
+    <div class="schedule-row">
+      <div class="schedule-field">
+        <label for="dueDate">Date d'exécution (facultatif)</label>
+        <input id="dueDate" type="date">
+      </div>
+      <div class="schedule-field">
+        <label for="dueTime">Heure (facultatif)</label>
+        <input id="dueTime" type="time">
+      </div>
+    </div>
+    <label class="reminder-option"><input id="reminderEnabled" type="checkbox"> Me rappeler à cette date et heure</label>
+    <div class="composer-bottom">
+      <span class="date-hint" id="todayLabel"></span>
+      <button class="primary" id="addBtn">＋ Ajouter</button>
+    </div>
+    <div class="notification-row">
+      <span class="date-hint" id="notificationStatus">Les rappels fonctionnent lorsque l'application reste ouverte.</span>
+      <button class="small-button" id="enableNotifications" type="button">Activer les notifications</button>
+    </div>
+  </section>
+
+  </section>
+  <section id="tasksView" class="view">
+  <section class="toolbar" aria-label="Filtrer les tâches">
+    <div class="filters">
+      <button class="filter active" data-filter="all">Tout</button>
+      <button class="filter" data-filter="active">À faire</button>
+      <button class="filter" data-filter="done">Terminées</button>
+    </div>
+    <input class="search" id="search" type="search" placeholder="Rechercher…" aria-label="Rechercher une tâche">
+  </section>
+
+  <div class="section-head">
+    <h2 id="listTitle">Vos notes et tâches</h2>
+    <span class="count" id="count"></span>
+  </div>
+  <section id="tasks" aria-live="polite"></section>
+  <div class="footer-note">
+    Vos notes sont enregistrées sur cet appareil. Évitez d'effacer les données de l'application ou du navigateur pour les conserver. Cette version ne synchronise pas les notes entre plusieurs appareils.
+  </div>
+  </section>
+</main>
+<script>
+(() => {
+  const STORAGE_KEY = 'mon-agenda-simple-v1';
+  const input = document.getElementById('taskInput');
+  const dueDate = document.getElementById('dueDate');
+  const dueTime = document.getElementById('dueTime');
+  const reminderEnabled = document.getElementById('reminderEnabled');
+  const tasksEl = document.getElementById('tasks');
+  const searchEl = document.getElementById('search');
+  const notificationStatus = document.getElementById('notificationStatus');
+  let filter = 'all';
+  let tasks = [];
+  const notified = new Set();
+  try { tasks = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); if (!Array.isArray(tasks)) tasks = []; } catch (_) { tasks = []; }
+
+  const dateString = (date = new Date()) => new Intl.DateTimeFormat('fr-FR', {
+    weekday:'long', day:'numeric', month:'long', year:'numeric'
+  }).format(date);
+  const dateTimeString = (iso) => {
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return 'Date inconnue';
+    return new Intl.DateTimeFormat('fr-FR', {day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'}).format(d);
+  };
+  const localDateTime = (date, time) => {
+    if (!date) return null;
+    const [y,m,d] = date.split('-').map(Number);
+    const [hh,mm] = (time || '09:00').split(':').map(Number);
+    return new Date(y, m - 1, d, hh, mm, 0, 0).toISOString();
+  };
+  document.getElementById('todayLabel').textContent = 'Créée le : ' + dateString();
+
+  function save() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks)); }
+    catch (_) { alert("Impossible d'enregistrer les notes. Vérifiez l'espace disponible du navigateur."); }
+    document.getElementById('tabCount').textContent = tasks.filter(t => !t.done).length;
+  }
+
+  document.querySelectorAll('[data-tab]').forEach(btn => btn.addEventListener('click', () => {
+    const target = btn.dataset.tab;
+    document.querySelectorAll('[data-tab]').forEach(b => b.classList.toggle('active', b === btn));
+    document.getElementById('homeView').classList.toggle('active', target === 'home');
+    document.getElementById('tasksView').classList.toggle('active', target === 'tasks');
+    if (target === 'tasks') render();
+    window.scrollTo({top: 0, behavior: 'smooth'});
+  }));
+  function updateNotificationStatus() {
+    if (!('Notification' in window)) {
+      notificationStatus.textContent = 'Ce navigateur ne prend pas en charge les notifications.';
+    } else if (Notification.permission === 'granted') {
+      notificationStatus.textContent = 'Notifications autorisées. Gardez l’application ouverte pour recevoir les rappels.';
+    } else if (Notification.permission === 'denied') {
+      notificationStatus.textContent = 'Notifications bloquées. Vous pouvez les autoriser dans les réglages du navigateur.';
+    } else {
+      notificationStatus.textContent = 'Autorisez les notifications pour recevoir les rappels quand l’application est ouverte.';
+    }
+  }
+  document.getElementById('enableNotifications').addEventListener('click', async () => {
+    if (!('Notification' in window)) {
+      alert('Les notifications ne sont pas prises en charge par ce navigateur.'); return;
+    }
+    try {
+      const permission = await Notification.requestPermission();
+      updateNotificationStatus();
+      if (permission === 'granted') alert('Notifications activées. Pour cette version, gardez la page de l’agenda ouverte.');
+    } catch (_) {
+      alert('Impossible d’activer les notifications ici. Essayez d’ouvrir le fichier dans Chrome et vérifiez les autorisations du site.');
+    }
+  });
+
+  function addTask() {
+    const text = input.value.trim();
+    if (!text) { input.focus(); return; }
+    if (reminderEnabled.checked && !dueDate.value) {
+      alert('Choisissez une date pour programmer un rappel.'); dueDate.focus(); return;
+    }
+    const scheduledAt = dueDate.value ? localDateTime(dueDate.value, dueTime.value) : null;
+    if (reminderEnabled.checked && scheduledAt && new Date(scheduledAt).getTime() < Date.now()) {
+      alert('La date et l’heure du rappel doivent être dans le futur.'); return;
+    }
+    tasks.unshift({
+      id: (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random()),
+      text, createdAt: new Date().toISOString(), done: false,
+      dueAt: scheduledAt,
+      reminder: !!reminderEnabled.checked
+    });
+    save(); input.value = ''; dueDate.value = ''; dueTime.value = ''; reminderEnabled.checked = false;
+    render(); input.focus();
+  }
+  document.getElementById('addBtn').addEventListener('click', addTask);
+  input.addEventListener('keydown', e => { if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') addTask(); });
+  searchEl.addEventListener('input', render);
+  document.querySelectorAll('[data-filter]').forEach(btn => btn.addEventListener('click', () => {
+    filter = btn.dataset.filter;
+    document.querySelectorAll('[data-filter]').forEach(b => b.classList.toggle('active', b === btn));
+    render();
+  }));
+
+  function checkReminders() {
+    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+    const now = Date.now();
+    tasks.forEach(task => {
+      if (!task.done && task.reminder && task.dueAt && !notified.has(task.id)) {
+        const due = new Date(task.dueAt).getTime();
+        if (due <= now) {
+          try {
+            new Notification('Rappel — Mon Agenda Simple', {
+              body: task.text,
+              tag: 'agenda-' + task.id
+            });
+            notified.add(task.id);
+          } catch (_) {}
+        }
+      }
+    });
+  }
+
+  function render() {
+    const q = searchEl.value.trim().toLocaleLowerCase('fr');
+    const visible = tasks.filter(t => {
+      const matchFilter = filter === 'all' || (filter === 'active' && !t.done) || (filter === 'done' && t.done);
+      return matchFilter && t.text.toLocaleLowerCase('fr').includes(q);
+    });
+    document.getElementById('count').textContent = tasks.length + (tasks.length > 1 ? ' éléments' : ' élément');
+    document.getElementById('tabCount').textContent = tasks.filter(t => !t.done).length;
+    document.getElementById('listTitle').textContent = filter === 'active' ? 'À faire' : filter === 'done' ? 'Terminées' : 'Vos notes et tâches';
+    tasksEl.replaceChildren();
+    if (!visible.length) {
+      const empty = document.createElement('div'); empty.className = 'empty';
+      const strong = document.createElement('strong');
+      strong.textContent = tasks.length ? 'Aucun résultat' : 'Votre carnet est vide';
+      const detail = document.createElement('span');
+      detail.textContent = tasks.length ? 'Essayez un autre filtre ou une autre recherche.' : 'Écrivez votre première note dans le champ ci-dessus.';
+      empty.append(strong, detail); tasksEl.append(empty); return;
+    }
+    visible.forEach(task => {
+      const card = document.createElement('article'); card.className = 'task' + (task.done ? ' done' : '');
+      const check = document.createElement('input'); check.type = 'checkbox'; check.className = 'check'; check.checked = !!task.done;
+      check.setAttribute('aria-label', 'Marquer comme terminée');
+      check.addEventListener('change', () => { task.done = check.checked; save(); render(); });
+      const content = document.createElement('div'); content.className = 'task-content';
+      const text = document.createElement('div'); text.className = 'task-text'; text.textContent = task.text;
+      const date = document.createElement('div'); date.className = 'task-date'; date.textContent = 'Ajoutée le ' + dateTimeString(task.createdAt);
+      content.append(text, date);
+      const isOverdue = !!task.dueAt && !task.done && new Date(task.dueAt).getTime() < Date.now();
+      if (task.dueAt) {
+        const due = document.createElement('div'); due.className = 'task-date';
+        due.textContent = (task.reminder ? '🔔 Rappel : ' : 'À exécuter : ') + dateTimeString(task.dueAt);
+        content.append(due);
+      }
+      if (isOverdue) {
+        const overdue = document.createElement('div'); overdue.className = 'overdue-label'; overdue.textContent = 'EN RETARD';
+        content.append(overdue);
+      }
+      const actions = document.createElement('div'); actions.className = 'task-actions';
+      if (isOverdue) {
+        const postpone = document.createElement('button'); postpone.className = 'postpone'; postpone.textContent = 'Reporter à demain';
+        postpone.addEventListener('click', () => {
+          const oldDue = new Date(task.dueAt);
+          const tomorrow = new Date(oldDue);
+          tomorrow.setDate(tomorrow.getDate() + 1);
+          task.dueAt = tomorrow.toISOString();
+          task.reminder = true;
+          notified.delete(task.id);
+          save(); render();
+        });
+        actions.append(postpone);
+      }
+      const del = document.createElement('button'); del.className = 'delete'; del.textContent = 'Supprimer';
+      del.setAttribute('aria-label', 'Supprimer cette tâche');
+      del.addEventListener('click', () => {
+        if (confirm('Supprimer cette note ? Cette action est définitive.')) {
+          tasks = tasks.filter(t => t.id !== task.id); save(); render();
+        }
+      });
+      actions.append(del);
+      card.append(check, content, actions); tasksEl.append(card);
+    });
+  }
+  updateNotificationStatus();
+  document.getElementById('tabCount').textContent = tasks.filter(t => !t.done).length;
+  render();
+  checkReminders();
+  setInterval(checkReminders, 30000);
+  if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+# Mon Agenda Simple — pack Android
+
+## Ce que contient ce dossier
+- `index.html` : l'application avec deux onglets — **Accueil** pour ajouter une note et **Mes tâches** pour afficher, filtrer, terminer et supprimer les tâches.
+- `manifest.json` : informations nécessaires à l'installation comme application web (PWA).
+- `sw.js` : cache de base pour permettre de charger l'interface hors connexion après une première visite.
+- `icon.svg` : icône de l'application.
+
+## Important avant de commencer
+La solution est gratuite pour publier le site statique avec GitHub Pages et essayer de générer un paquet Android avec PWABuilder. Les interfaces des plateformes peuvent évoluer. La publication sur Google Play est une étape distincte et peut exiger des frais de compte développeur.
+Les tâches restent stockées localement dans le navigateur / stockage de l'application. Elles ne sont pas synchronisées automatiquement entre plusieurs appareils.
+
+**Limite des rappels :** cette version vérifie les rappels pendant que l'application est ouverte. Une page web seule ne peut pas garantir une notification locale à une heure précise si Android ferme l'application. Pour une alarme fiable en arrière-plan, il faudra ajouter une vraie couche Android ou un système de notifications push.
+
+## Étape A — publier gratuitement l'application sur GitHub Pages
+GitHub Pages publie gratuitement des fichiers statiques à partir d'un dépôt public GitHub Free. Le dépôt sera public : ne mettez pas de données personnelles dans le dépôt. Les notes écrites dans l'application ne sont pas dans le code du dépôt.
+
+1. Créez ou connectez-vous à un compte sur https://github.com/
+2. Créez un nouveau dépôt public, par exemple `mon-agenda-simple`.
+3. Téléversez les quatre fichiers du dossier (`index.html`, `manifest.json`, `sw.js`, `icon.svg`) à la racine du dépôt. Renommez `mon_agenda_simple.html` en `index.html` si vous partez du fichier séparé fourni.
+4. Dans le dépôt, ouvrez **Settings → Pages**.
+5. Dans **Build and deployment**, choisissez **Deploy from a branch**, branche `main`, dossier `/ (root)`, puis **Save**.
+6. Attendez la publication. GitHub affichera une adresse du type `https://VOTRE-PSEUDO.github.io/mon-agenda-simple/`.
+7. Ouvrez cette adresse sur votre téléphone Android avec Chrome. Vérifiez que les deux onglets s'affichent et que l'ajout d'une tâche fonctionne.
+
+Documentation officielle : https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-github-pages-site
+
+## Étape B — essayer d'installer comme application Android (APK)
+1. Ouvrez https://www.pwabuilder.com/
+2. Collez l'adresse HTTPS publiée à l'étape A, puis lancez l'analyse.
+3. Si PWABuilder signale des problèmes, vérifiez que `manifest.json`, `sw.js` et `icon.svg` sont accessibles depuis le site.
+4. Choisissez la section **Package for stores** ou **Android** puis **Generate Package**. Les libellés peuvent changer.
+5. Pour un test personnel, choisissez un paquet Android de test si cette option est proposée. Téléchargez le ZIP généré et cherchez le fichier `.apk`.
+6. Transférez l'APK sur votre téléphone Android, ouvrez-le et autorisez temporairement l'installation depuis cette source si Android le demande. N'installez que l'APK que vous venez de générer vous-même.
+7. Si le site demande un fichier `assetlinks.json` ou une signature, suivez ses indications. Certaines configurations de Trusted Web Activity nécessitent une configuration supplémentaire.
+
+Documentation PWABuilder : https://docs.pwabuilder.com/
+
+## Option la plus simple : installer sans APK
+Une fois le site publié en HTTPS, ouvrez-le dans Chrome sur Android, appuyez sur le menu ⋮ puis choisissez **Installer l'application** ou **Ajouter à l'écran d'accueil** si l'option est disponible. Cela crée une icône et permet de lancer l'agenda comme une application web. Cette méthode évite la génération manuelle d'un APK.
+
+## Conseils de test
+- Ajoutez une tâche test.
+- Passez dans **Mes tâches**.
+- Cochez-la, puis testez la suppression.
+- Essayez une tâche programmée à quelques minutes dans le futur en gardant l'application ouverte et en autorisant les notifications.
+- Ne comptez pas encore sur cette version pour les alarmes si l'application est fermée.
